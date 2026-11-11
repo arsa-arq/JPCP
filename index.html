@@ -122,6 +122,8 @@ svg.chart .pt{fill:var(--ink)}
 .ctl.grow{flex:1;min-width:200px} .ctl output{font:500 .8rem var(--mono);color:var(--ink);text-transform:none;letter-spacing:0;margin-left:6px}
 input[type="range"]{padding:0;border:0;background:none;accent-color:var(--ink)}
 .chk{display:flex;align-items:center;gap:6px;font-size:.84rem} .chk input{width:auto}
+#p-t3 .f input.pend,#p-t3 .f select.pend{background:color-mix(in srgb,var(--bad) 16%,var(--bg));border-color:color-mix(in srgb,var(--bad) 55%,var(--line,#999))}
+.ip-chk{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0 0 8px}.ip-chk .chk{font-size:.8rem}
 .btn.sm{padding:5px 10px;font-size:.78rem}
 .tip{position:absolute;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px 10px;font:.76rem/1.45 var(--mono);box-shadow:0 2px 10px rgba(0,0,0,.12);white-space:nowrap;z-index:2}
 .tip b{font-family:var(--body);font-weight:600}
@@ -1757,7 +1759,11 @@ K0+750; 36</textarea></div>
           <div class="f" id="ip-fdw" hidden><label for="ip-fd">Separación de las ruedas dobles<small>m</small></label><input id="ip-fd" type="number" value="0.25" step="0.01"></div>
           <div class="f"><label for="ip-ftire">Llanta</label><select id="ip-ftire"><option value="0.7">Neumática (0.6–0.7 MPa)</option><option value="0.8">Neumática con cuerdas de acero (0.6–0.8 MPa)</option><option value="1.4" selected>Sólida o cojín (1.2–1.7 MPa)</option><option value="6.9">Poliuretano (hasta 6.9 MPa)</option><option value="c">Otra (escribir presión)</option></select></div>
           <div class="f"><label for="ip-fq">Presión de contacto<small>MPa</small></label><input id="ip-fq" type="number" value="1.4" step="0.1"></div>
-          <div class="f"><label for="ip-fN">Repeticiones previstas<small>pasadas del eje en la vida útil</small></label><input id="ip-fN" type="number" value="1000000" step="100000"></div>
+          <div class="f"><label for="ip-fY">Periodo de diseño<small>años</small></label><input id="ip-fY" type="number" value="20" step="1" min="0"></div>
+          <div class="f"><label for="ip-fpd">Número de pasadas<small>pasadas del eje cargado por día en el punto crítico</small></label><input id="ip-fpd" type="number" value="170" step="10" min="0"></div>
+          <div class="f"><label for="ip-fdy">Días al año<small>días de operación</small></label><input id="ip-fdy" type="number" value="300" step="1" min="0" max="366"></div>
+          <div class="f"><label for="ip-fch">Factor de canalización<small>1,0 pasillos estrechos · 0,3–0,5 zonas abiertas</small></label><input id="ip-fch" type="number" value="1.0" step="0.05" min="0" max="1"></div>
+          <div class="f"><label for="ip-fN">Repeticiones previstas<small>periodo × pasadas × días × canalización</small></label><input id="ip-fN" type="number" value="1020000" readonly tabindex="-1" style="background:var(--soft)"></div>
           <div class="f"><label for="ip-fsfm">Factor de seguridad</label><select id="ip-fsfm"><option value="fat">Por fatiga (Tabla 4.3, PCA)</option><option value="man">Fijado por el diseñador</option></select></div>
           <div class="f"><label for="ip-fsf">Factor de seguridad manual<small>Tabla 4.2: 1.7 a 2.0</small></label><input id="ip-fsf" type="number" value="2.0" step="0.1"></div>
           <div class="f"><label for="ip-flt">Transferencia en juntas<small>% de reducción del esfuerzo de borde</small></label><input id="ip-flt" type="number" value="20" step="5"></div>
@@ -1804,8 +1810,9 @@ K0+750; 36</textarea></div>
         </div>
         <div class="panel">
           <h2>Relación de esfuerzos según el espesor</h2>
+          <div id="ip-chk" class="ip-chk" role="group" aria-label="Casos visibles en la gráfica"></div>
           <div id="ip-chart"></div>
-          <p class="note">σ / σ<sub>adm</sub> de cada caso; la horizontal marca el límite y la vertical el espesor requerido.</p>
+          <p class="note">σ / σ<sub>adm</sub> de cada caso; la horizontal marca el límite y la vertical el espesor requerido. En rojo y línea gruesa, el caso que gobierna el diseño. Las casillas muestran u ocultan cada curva.</p>
         </div>
         <div class="panel" id="ip-frcp" hidden>
           <h2>Fibras de acero: método de líneas de rotura (Meyerhof)</h2>
@@ -3380,6 +3387,16 @@ B777-300ER 352.4 3D 0.466 1.397 1.448 1.52 150</textarea></div>
         <h2>Datos de diseño</h2>
         <p class="note" style="margin:0 0 10px">Procedimiento de la guía BarChip <i>Flooring Design Guideline</i> (2022), que aplica TR 34, 4.ª ed., a losas con fibras macrosintéticas; también permite diseñar sin fibras (concreto simple o solo con barras). Los valores iniciales son los del Apéndice A (losa de 150 mm con BarChip 48 a 4 kg/m³).</p>
         <p style="margin:0 0 12px"><button type="button" class="btn" id="t3-ex">Cargar ejemplo del Apéndice A</button></p>
+        <h3>Importar desde ACI 360R-06</h3>
+        <p class="note" style="margin:0 0 8px">Trae la geometría, el soporte y las cargas de servicio del módulo Industriales (ACI 360R-06) para diseñar la misma losa con TR 34, sin fibras y con fibras, y comparar. Los datos que ACI no define quedan vacíos y en rojo pálido hasta que se digiten.</p>
+        <p style="margin:0 0 8px"><button type="button" class="btn" id="t3-imp">Importar diseño ACI 360R-06</button></p>
+        <div id="t3-impw" hidden>
+          <div class="fields">
+            <div class="f"><label for="t3-iGr">γ<sub>f</sub> cargas de estanterías<small>Tabla 4-2: 1,2 definidas · 1,5 otras · P* = γ<sub>f</sub> × carga de servicio</small></label><input id="t3-iGr" type="number" step="0.1"></div>
+            <div class="f"><label for="t3-iGo">γ<sub>f</sub> cargas en línea y uniformes<small>Tabla 4-2: 1,5 otras cargas</small></label><input id="t3-iGo" type="number" step="0.1"></div>
+          </div>
+          <p class="note" id="t3-imps" style="margin:6px 0 10px"></p>
+        </div>
         <h3>Paso 1 · Losa, concreto y soporte (4.3)</h3>
         <div class="fields">
           <div class="f"><label for="t3-h">Espesor de la losa h<small>mm · mínimo 150 (4.1)</small></label><input id="t3-h" type="number" value="150" step="5"></div>
@@ -3487,6 +3504,10 @@ B777-300ER 352.4 3D 0.466 1.397 1.448 1.52 150</textarea></div>
           <div class="result"><div><div class="big" id="t3-big">—</div><div class="note" id="t3-bign">utilización máxima (demanda / capacidad)</div></div><dl class="kv" id="t3-kv"></dl></div>
           <p class="note" id="t3-msg" style="margin-top:8px"></p>
           <div class="tablewrap" style="margin-top:8px"><table id="t3-pt"></table></div>
+        </div>
+        <div class="panel">
+          <h2>Comparación de metodologías: ACI 360R-06 y TR 34</h2>
+          <div id="t3-cmp"></div>
         </div>
         <div class="panel">
           <h2>Fibras: macrofibras y microfibras</h2>
@@ -3877,7 +3898,8 @@ function solveD(p, ZRS0) {
 }
 
 // ---------- Gráficos SVG ----------
-function chart(el, {series, xLabel, yLabel, xr, yr, hline, vline, xfmt = x=>x, yfmt = y=>y, bars, dashes, legend, legendTop}) {
+function chart(el, {series, xLabel, yLabel, xr, yr, hline, vline, xfmt = x=>x, yfmt = y=>y, bars, dashes, legend, legendTop, styles}) {
+  const stl=i=>styles&&styles[i]?`style="stroke:${styles[i].stroke||'var(--ink)'};stroke-width:${styles[i].width||1.6};stroke-dasharray:${styles[i].dash||'none'}"`:(dashes?`style="stroke:var(--ink);stroke-width:1.6;stroke-dasharray:${dashes[i]||'none'}"`:'');
   const W=640,H=300,L=58,R=16,T=14,B=42; const iw=W-L-R, ih=H-T-B;
   const X=x=>L+(x-xr[0])/(xr[1]-xr[0])*iw, Y=y=>T+ih-(y-yr[0])/(yr[1]-yr[0])*ih;
   const nice=(a,b,n)=>{const s=(b-a)/n,m=Math.pow(10,Math.floor(log10(s)));const st=[1,2,2.5,5,10].map(f=>f*m).find(f=>f>=s);const out=[];for(let t=Math.ceil(a/st)*st;t<=b+1e-9;t+=st)out.push(+t.toFixed(10));return out;};
@@ -3888,8 +3910,8 @@ function chart(el, {series, xLabel, yLabel, xr, yr, hline, vline, xfmt = x=>x, y
   if (bars) { const bw = iw/bars.length; bars.forEach((b,i)=>{ const h=(b.v-yr[0])/(yr[1]-yr[0])*ih; s+=`<rect class="${b.fail?'barf':'bar'}" x="${L+i*bw+0.5}" y="${T+ih-h}" width="${Math.max(bw-1,0.5)}" height="${h}"/>`; }); }
   [].concat(hline??[]).forEach(hl=>{ if (hl!=null && hl>=yr[0] && hl<=yr[1]) s+=`<line class="tgt" x1="${L}" x2="${W-R}" y1="${Y(hl)}" y2="${Y(hl)}"/>`; });
   [].concat(vline??[]).forEach(vl=>{ if (vl!=null && vl>=xr[0] && vl<=xr[1]) s+=`<line class="tgt" x1="${X(vl)}" x2="${X(vl)}" y1="${T}" y2="${T+ih}"/>`; });
-  (series||[]).forEach((se,i)=>{ const pts=se.filter(p=>Number.isFinite(p[1])).map(p=>[X(p[0]),Y(Math.max(yr[0],Math.min(yr[1],p[1])))]); if(pts.length) s+=`<path class="${i?'ln2':'ln'}" ${dashes?`style="stroke:var(--ink);stroke-width:1.6;stroke-dasharray:${dashes[i]||'none'}"`:''} d="M${pts.map(p=>p.join(' ')).join('L')}"/>`; });
-  if(legend) legend.forEach((name,i)=>{ const y=legendTop?T+14+i*15:T+ih-10-(legend.length-1-i)*15, x=L+14; s+=`<line x1="${x}" x2="${x+24}" y1="${y-4}" y2="${y-4}" class="${i?'ln2':'ln'}" ${dashes?`style="stroke:var(--ink);stroke-width:1.6;stroke-dasharray:${dashes[i]||'none'}"`:''}/><text x="${x+30}" y="${y}" text-anchor="start">${name}</text>`; });
+  (series||[]).forEach((se,i)=>{ const pts=se.filter(p=>Number.isFinite(p[1])).map(p=>[X(p[0]),Y(Math.max(yr[0],Math.min(yr[1],p[1])))]); if(pts.length) s+=`<path class="${i?'ln2':'ln'}" ${stl(i)} d="M${pts.map(p=>p.join(' ')).join('L')}"/>`; });
+  if(legend) legend.forEach((name,i)=>{ const y=legendTop?T+14+i*15:T+ih-10-(legend.length-1-i)*15, x=L+14; s+=`<line x1="${x}" x2="${x+24}" y1="${y-4}" y2="${y-4}" class="${i?'ln2':'ln'}" ${stl(i)}/><text x="${x+30}" y="${y}" text-anchor="start" ${styles&&styles[i]&&styles[i].stroke?`style="fill:${styles[i].stroke};font-weight:600"`:''}>${name}</text>`; });
   s+=`<text x="${L+iw/2}" y="${H-6}" text-anchor="middle">${xLabel}</text><text x="14" y="${T+ih/2}" text-anchor="middle" transform="rotate(-90 14 ${T+ih/2})">${yLabel}</text></svg>`;
   el.innerHTML=s;
 }
@@ -6234,19 +6256,25 @@ function ipCases(){ const E=v('ip-E'), k=v('ip-k')/1000, mu=v('ip-mu'), MR=ipMR(
   return {C,E,k,mu,MR,fsF,frc,re3}; }
 function ipHreq(c){ let lo=60, hi=1000; if(c.f(hi)>c.adm) return NaN; for(let it=0;it<45;it++){ const m=(lo+hi)/2; if(c.f(m)>c.adm) lo=m; else hi=m; } return hi; }
 let ipLast=null;
+const IP_HIDE=new Set();
 function runIp(){
+  { const N=Math.round(Math.max(0,v('ip-fY'))*Math.max(0,v('ip-fpd'))*Math.max(0,v('ip-fdy'))*Math.max(0,v('ip-fch'))); $('ip-fN').value=N; }
   const ty=$('ip-type').value; $('ip-fdw').hidden=$('ip-fn').value!=='4'; $('ip-frcw').hidden=$('ip-frcw2').hidden=$('ip-frcp').hidden=ty!=='frc'; if($('ip-ftire').value!=='c') $('ip-fq').value=$('ip-ftire').value;
   const {C,E,k,mu,MR,fsF,frc,re3}=ipCases(), h=v('ip-h');
   if(!C.length){ $('ip-hreq').textContent='—'; $('ip-tab').innerHTML='<tr><td class="note">Ingrese al menos una carga.</td></tr>'; return; }
   const R=C.map(c=>({...c,s:c.f(h),hr:ipHreq(c)})), gov=R.reduce((b,x)=>(!Number.isFinite(x.hr)||x.hr>b.hr)?x:b,R[0]), hreq=Math.ceil(gov.hr/10)*10, l=Math.pow(E*h**3/(12*(1-mu*mu)*k),0.25);
   $('ip-hreq').innerHTML=Number.isFinite(hreq)?`${hreq}<small>mm</small>`:'<span class="bad">&gt; 1000</span>'; $('ip-gov').textContent=`gobierna: ${gov.n.toLowerCase()}`;
-  $('ip-kv').innerHTML=`<dt>Módulo de rotura usado</dt><dd>${fmt(MR,2)} MPa${v('ip-MR')>0?'':' (0.75√f\'c)'}</dd><dt>Factor de seguridad del montacargas</dt><dd>${fmt(fsF,2)}${$('ip-fsfm').value==='fat'?` (relación de esfuerzos ${fmt(1/fsF,3)} para ${fmtN(v('ip-fN'))} repeticiones)`:''}</dd>
+  $('ip-kv').innerHTML=`<dt>Módulo de rotura usado</dt><dd>${fmt(MR,2)} MPa${v('ip-MR')>0?'':' (0.75√f\'c)'}</dd><dt>Repeticiones previstas</dt><dd>${fmt(v('ip-fY'),0)} años × ${fmtN(v('ip-fpd'))} pasadas/día × ${fmt(v('ip-fdy'),0)} días/año × ${fmt(v('ip-fch'),2)} = ${fmtN(v('ip-fN'))}</dd><dt>Factor de seguridad del montacargas</dt><dd>${fmt(fsF,2)}${$('ip-fsfm').value==='fat'?` (relación de esfuerzos ${fmt(1/fsF,3)} para ${fmtN(v('ip-fN'))} repeticiones)`:''}</dd>
     <dt>Esfuerzo admisible</dt><dd>${frc?`R<sub>e,3</sub>·MR = ${fmt(re3/100*MR,2)} MPa (método elástico, 10.3.3.2)`:'MR / FS de cada caso'}</dd><dt>Radio de rigidez relativa L (h = ${h} mm)</dt><dd>${fmt(l,0)} mm</dd><dt>Casos que cumplen con ${h} mm</dt><dd>${R.filter(x=>x.s<=x.adm).length} de ${R.length}</dd>`;
   $('ip-tab').innerHTML='<tr><th>Caso</th><th>σ actuante</th><th>σ<sub>adm</sub></th><th>σ/σ<sub>adm</sub></th><th>Espesor requerido</th></tr>'+R.map(x=>`<tr><td style="white-space:normal;text-align:left"><b>${x.n}</b><br><span class="note">${x.desc}</span></td><td>${fmt(x.s,2)} MPa</td><td>${fmt(x.adm,2)} MPa${frc?'':` (FS ${fmt(x.SF,2)})`}</td><td class="${x.s<=x.adm?'ok':'bad'}">${fmt(x.s/x.adm,2)}</td><td>${Number.isFinite(x.hr)?Math.ceil(x.hr/10)*10+' mm':'&gt; 1000 mm'}</td></tr>`).join('');
   const notes={plain:'Losa sin refuerzo (cap. 6): diseñada para no fisurarse por carga, con FS de 1.4 a 2.0 respecto al módulo de rotura. Los métodos PCA y WRI cubren cargas interiores; el COE, cargas en juntas; ninguno considera el alabeo.',crack:'Refuerzo para control de fisuras (cap. 7): el espesor se calcula igual que para la losa sin refuerzo (7.2); el acero solo limita el ancho de las fisuras (ver la tabla de refuerzo).',frc:'Fibras de acero (cap. 10): método elástico con esfuerzo admisible f<sub>b</sub> = R<sub>e,3</sub>/100 × MR (10.3.3.2) y, para postes, método de líneas de rotura de Meyerhof (10.3.3.3), que exige R<sub>e,3</sub> &gt; 30 %.',shc:'Retracción compensada (cap. 8): el espesor por cargas se obtiene como en el cap. 6; además se requiere expansión restringida suficiente (ACI 223), acero ≥ 0.15 % en el tercio superior y juntas de aislamiento con relleno compresible. Diseño del refuerzo no incluido.',pt:'Postensada (cap. 9): el diseño se hace con los métodos PTI para suelos expansivos o con el método de esfuerzo de tracción equivalente; no está implementado aquí. El espesor mostrado corresponde a la losa sin postensado.'};
   $('ip-tn').innerHTML=notes[ty];
   const hs=[]; for(let hh=100;hh<=500;hh+=10) hs.push(hh);
-  chart($('ip-chart'),{series:R.map(x=>hs.map(hh=>[hh,Math.min(3,x.f(hh)/x.adm)])),legend:R.map(x=>x.n),dashes:['none','6 4','2 3','10 3 2 3','4 2','8 2','1 3','12 4','3 6','6 2 2 2'],xLabel:'espesor de losa (mm)',yLabel:'σ / σadm',xr:[100,500],yr:[0,3],hline:1,vline:Number.isFinite(hreq)?hreq:null,yfmt:y=>fmt(y,1)});
+  { const DS=['none','6 4','2 3','10 3 2 3','4 2','8 2','1 3','12 4','3 6','6 2 2 2'];
+    $('ip-chk').innerHTML=R.map((x,i)=>`<label class="chk"><input type="checkbox" data-n="${x.n}" ${IP_HIDE.has(x.n)?'':'checked'}> <svg width="26" height="8" aria-hidden="true"><line x1="1" x2="25" y1="4" y2="4" style="stroke:${x===gov?'var(--bad)':'var(--ink)'};stroke-width:${x===gov?3:1.6};stroke-dasharray:${x===gov?'none':DS[i]||'none'}"/></svg> <span${x===gov?' class="bad" style="font-weight:600"':''}>${x.n}${x===gov?' · gobierna':''}</span></label>`).join('');
+    const vis=R.map((x,i)=>({x,i})).filter(o=>!IP_HIDE.has(o.x.n));
+    if(!vis.length){ $('ip-chart').innerHTML='<p class="note">Active al menos un caso para ver la gráfica.</p>'; }
+    else chart($('ip-chart'),{series:vis.map(o=>hs.map(hh=>[hh,Math.min(3,o.x.f(hh)/o.x.adm)])),styles:vis.map(o=>o.x===gov?{stroke:'var(--bad)',width:3,dash:'none'}:{dash:DS[o.i]||'none'}),xLabel:'espesor de losa (mm)',yLabel:'σ / σadm',xr:[100,500],yr:[0,3],hline:1,vline:Number.isFinite(hreq)?hreq:null,yfmt:y=>fmt(y,1)}); }
   // líneas y uniformes
   const lam=Math.pow(3*k/(E*h**3),0.25), lsf=v('ip-lsf'), usf=v('ip-usf'), al=frc?re3/100*MR:MR/lsf, au=frc?re3/100*MR:MR/usf, ua=v('ip-ua')*1000, wC=au*h*h/6*2*lam*lam/(Math.exp(-Math.PI/4)*Math.sin(Math.PI/4)), xa=lam*ua/2, fa=Math.exp(-xa)*Math.sin(xa);
   $('ip-lu').innerHTML=`<tr><th>Concepto (h = ${h} mm)</th><th>Valor</th></tr><tr><td>Carga en línea admisible, interior (FS ${fmt(lsf,1)})</td><td>${fmt(al*h*h/6*4*lam,1)} kN/m</td></tr><tr><td>Carga en línea admisible junto a junta libre</td><td>${fmt(al*h*h/6*lam/0.3224,1)} kN/m</td></tr>
@@ -8134,7 +8162,7 @@ let kbRaf=0; const kbSched=()=>{ if(kbRaf) return; kbRaf=requestAnimationFrame((
 // --- proyectos de ejemplo
 const EXAMPLES=[
   {n:'Vía urbana (INVIAS)',d:'Vía colectora de dos carriles, CBR 4 %, base granular, MR 4,4 MPa',go:'t-fl',v:{'pj-name':'Ejemplo · Vía urbana colectora','pj-loc':'Bogotá D.C.','pj-notes':'Proyecto de ejemplo: vía colectora de dos carriles (uno por sentido) sobre subrasante arcillosa. Valores ilustrativos.','t-TPD':3500,'t-r':3,'t-n':20,'t-FD':0.5,'t-FC':'1','k-src':'cbr1','k-CBR':4,'k-sbt':'gran','k-Dsb':200,'k-LS':1,'db-MR':4.4,'db-R':90,'db-W18':4.2e6,'db-L':4,'db-W':3.5,'db-h':230,'v-W':7,'v-lw':3.5,'jp-nl':2,'jp-wl':3.5,'bq-L':1.2}},
-  {n:'Patio industrial (ACI 360R)',d:'Patio de almacenamiento con montacargas de 90 kN por eje y estanterías',go:'t-ip',v:{'pj-name':'Ejemplo · Patio industrial','pj-loc':'Zona franca, Mosquera','pj-notes':'Proyecto de ejemplo: patio con montacargas de llanta sólida y estanterías de 70 kN por poste sobre base tratada con cemento. Valores ilustrativos.','t-TPD':400,'t-r':2,'k-src':'cbr1','k-CBR':6,'k-sbt':'cem','k-Esb':3500,'k-Dsb':150,'k-LS':0.5,'db-MR':4.6,'db-R':85,'db-W18':1.5e6,'db-L':4.5,'db-W':4.5,'db-h':200,'db-q':1.4,'db-P':45,'ip-type':'plain','ip-h':200,'ip-fc':32,'ip-k':55,'ip-fP':90,'ip-ftire':'1.4','ip-fN':1000000,'ip-rP':70,'ip-jL':4.5,'ip-jW':4.5}},
+  {n:'Patio industrial (ACI 360R)',d:'Patio de almacenamiento con montacargas de 90 kN por eje y estanterías',go:'t-ip',v:{'pj-name':'Ejemplo · Patio industrial','pj-loc':'Zona franca, Mosquera','pj-notes':'Proyecto de ejemplo: patio con montacargas de llanta sólida y estanterías de 70 kN por poste sobre base tratada con cemento. Valores ilustrativos.','t-TPD':400,'t-r':2,'k-src':'cbr1','k-CBR':6,'k-sbt':'cem','k-Esb':3500,'k-Dsb':150,'k-LS':0.5,'db-MR':4.6,'db-R':85,'db-W18':1.5e6,'db-L':4.5,'db-W':4.5,'db-h':200,'db-q':1.4,'db-P':45,'ip-type':'plain','ip-h':200,'ip-fc':32,'ip-k':55,'ip-fP':90,'ip-ftire':'1.4','ip-fY':20,'ip-fpd':170,'ip-fdy':300,'ip-fch':1,'ip-rP':70,'ip-jL':4.5,'ip-jW':4.5}},
   {n:'Plataforma aeroportuaria (FAA)',d:'Plataforma de estacionamiento, losa de 430 mm, MR 4,8 MPa, k 80 MPa/m',go:'t-ap',v:{'pj-name':'Ejemplo · Plataforma aeroportuaria','pj-loc':'Aeropuerto regional','pj-notes':'Proyecto de ejemplo: plataforma de estacionamiento con la flota por defecto del módulo y base estabilizada. Valores ilustrativos.','k-src':'cbr1','k-CBR':8,'k-sbt':'cem','k-Esb':1500,'k-Dsb':150,'k-LS':0.5,'db-MR':4.8,'db-E':30000,'db-R':95,'db-W18':3e7,'db-L':6,'db-W':5,'db-h':430,'db-q':1.4,'ap-h':430,'ap-MR':4.8,'ap-E':30000,'ap-k':80,'ap-yr':20,'ap-Ls':6}},
   {n:'Glorieta urbana',d:'Glorieta de 6 ramales, isleta de 12 m, calzada anular de 8 m y losa de 220 mm',go:'t-ij',v:{'pj-name':'Ejemplo · Glorieta urbana','pj-loc':'Bogotá D.C.','pj-notes':'Proyecto de ejemplo: glorieta con calzada anular de dos carriles y modulación de juntas según ACPA. Valores ilustrativos.','t-TPD':8000,'t-r':3,'t-FC':'0.9','k-src':'cbr1','k-CBR':5,'k-sbt':'gran','k-Dsb':200,'db-MR':4.5,'db-R':90,'db-W18':8e6,'db-L':4,'db-W':4,'db-h':220,'nd-type':'r','nd-Ri':12,'nd-Wc':8,'nd-nc':2,'nd-Re':18,'nd-h':220}}];
 let exArm=null;
@@ -8261,16 +8289,88 @@ function t3Eval(o){ const C=t3Cls(+o.cls), fck=C.fck, Ecm=C.Ecm, h=o.h, k=o.k/10
   const umax=Math.max(...chk.filter(c=>c.inU).map(c=>c.u));
   return {Wa,plain,capAt:aa=>({I:PuI(aa),E:PuE(aa),C:PuC(aa)}),sI1:sI(a),sE1:sE(a),sC1:sC(a),C,fck,fctm:C.fctm,Ecm,fctd,Mun,Mn,Mp,s1,s4,note,l,lam,lm,M,deff,a,al,S,Dd,Q,Wh,fcd,ds,k2,vmax,ks,vmin,vf,dl,dPl,stiff,PU,J,fyd,Plin,PlinE,qadm,chk,umax,ratio:Mp/Mun}; }
 function t3Opts(){ return {h:v('t3-h'),cls:$('t3-cls').value,k:v('t3-k'),gm:v('t3-gm')||1.5,ft:$('t3-ft').value,fR1:v('t3-fr1'),fR2:v('t3-fr2'),fR3:v('t3-fr3'),fR4:v('t3-fr4'),As:v('t3-As')||0,cov:v('t3-cov'),fyk:v('t3-fyk')||500,bx:v('t3-bx'),tb:v('t3-tb')||0,P:v('t3-P'),P1:v('t3-P1'),P2:v('t3-P2'),x2:v('t3-x2'),Q1:v('t3-Q1'),Q2:v('t3-Q2'),Q3:v('t3-Q3'),Q4:v('t3-Q4'),x:v('t3-x'),y:v('t3-y'),Wax:v('t3-Wax')||0,mE:v('t3-tr')||0,tt:$('t3-tt').value,gd:v('t3-gd')||1.6,mj:$('t3-mj').checked,W:$('t3-mhe').value==='none'?0:(v('t3-gd')||1.6)*(v('t3-Wax')||0)/2,tp:v('t3-tp')||2,Pp:v('t3-Pp'),jt:$('t3-jt').value,Pj:v('t3-Pj'),dd:v('t3-dd'),ds:v('t3-ds'),jo:v('t3-jo'),wl:v('t3-wl'),wlp:$('t3-wlp').value,q:v('t3-q'),dose:v('t3-dose')}; }
-function t3Load(){ const e=t3Ex(); Object.keys(e).forEach(k=>{ const el=$('t3-'+k); if(el) el.value=e[k]; }); runT3(); }
+// ---------- TR 34: importación del diseño ACI 360R-06 y comparación de metodologías ----------
+let T3_IMP=null; // cargas de servicio y geometría traídas del módulo Industriales (ACI 360R-06)
+const T3_DER=['t3-P','t3-P1','t3-P2','t3-Q1','t3-Q2','t3-Q3','t3-Q4','t3-Pp','t3-Pj','t3-wl','t3-q'];
+function t3Pend(el,on){ if(!el) return;
+  if(el.tagName==='SELECT'){ let o=el.querySelector('option[data-pend]');
+    if(on){ if(!o){ o=document.createElement('option'); o.value=''; o.textContent='— por definir —'; o.dataset.pend='1'; el.insertBefore(o,el.firstChild); } el.value=''; }
+    else if(o&&el.value!=='') o.remove(); }
+  else if(on) el.value='';
+  el.classList.toggle('pend',!!on); }
+function t3ImpReset(){ T3_IMP=null; document.querySelectorAll('#p-t3 .pend').forEach(e=>{ if(e.tagName==='SELECT'){ const o=e.querySelector('option[data-pend]'); if(o) o.remove(); if(e.value==='') e.selectedIndex=0; } e.classList.remove('pend'); });
+  T3_DER.forEach(id=>{ $(id).dataset.imp='0'; }); if($('t3-impw')) $('t3-impw').hidden=true; }
+function t3Import(){ t3ImpReset();
+  const set=(id,val)=>{ const e=$(id); e.value=val; t3Pend(e,false); };
+  const fc=v('ip-fc'), cls=[...$('t3-cls').options].map(o=>+o.value).filter(x=>x>0&&x<=fc+0.5).pop()||20;
+  set('t3-h',v('ip-h')); set('t3-cls',String(cls)); set('t3-k',v('ip-k'));
+  const rP=v('ip-rP')||0, a=v('ip-ra'), b=v('ip-rb'), rx=v('ip-rx')*1000, ry=v('ip-ry')*1000;
+  set('t3-rk','dir'); set('t3-bx',Math.round(Math.sqrt(a*b))); set('t3-tb',0); set('t3-x2',Math.round(rx)); set('t3-x',Math.round(rx)); set('t3-y',Math.round(ry));
+  const fP=v('ip-fP')||0, n=+$('ip-fn').value, tire=$('ip-ftire').value, q=v('ip-fq');
+  if(fP>0){ set('t3-mhe','man'); set('t3-Wax',fP); set('t3-tr',Math.round(v('ip-fs')*1000)); set('t3-tt',tire==='0.7'||tire==='0.8'?'n':tire==='6.9'?'p':tire==='1.4'?'s':(q>=4?'p':q<1?'n':'s')); set('t3-tp',q); }
+  else set('t3-mhe','none');
+  // abertura de la junta con los mismos datos de la sección de juntas de ACI 360R-06
+  const sk=$('ip-shk').value, esh=v('ip-esh')>0?v('ip-esh'):ACI_ESH[sk], op=v('ip-jC')*v('ip-jL')*1000*(10e-6*v('ip-dT')+esh*1e-6);
+  if(op>0) set('t3-jo',+op.toFixed(1)); else t3Pend($('t3-jo'),true);
+  const lw=v('ip-lw')||0, uw=v('ip-uw')||0; set('t3-wlp','i');
+  T3_IMP={rP,fP,n,lw,uw,a,b,rx,ry,op,fc,cls,h:v('ip-h'),k:v('ip-k'),q,typ:$('ip-type').selectedOptions[0].textContent};
+  T3_DER.forEach(id=>{ $(id).dataset.imp='1'; });
+  $('t3-iGr').value=''; $('t3-iGo').value=''; t3Pend($('t3-iGr'),rP>0); t3Pend($('t3-iGo'),lw>0||uw>0);
+  ['t3-jt','t3-dd','t3-ds'].forEach(id=>t3Pend($(id),true));
+  $('t3-impw').hidden=false;
+  $('t3-imps').innerHTML=`<b>Importado:</b> h ${fmt(T3_IMP.h,0)} mm · f'c ${fmt(fc,0)} MPa → f<sub>ck</sub> ${cls} MPa · k ${fmt(T3_IMP.k,0)} MPa/m`+
+    (rP>0?` · poste ${fmt(rP,1)} kN de servicio, placa ${fmt(a,0)} × ${fmt(b,0)} mm (d = √(a·b) = ${Math.round(Math.sqrt(a*b))} mm, t = 0), postes a ${fmt(rx/1000,2)} × ${fmt(ry/1000,2)} m`:'')+
+    (fP>0?` · montacargas: eje de ${fmt(fP,1)} kN, ${n} ruedas, trocha ${fmt(v('ip-fs'),2)} m, ${fmt(q,1)} MPa${n===4?' (TR 34 toma una rueda por lado con P/2; las ruedas dobles quedan del lado seguro)':''}`:'')+
+    (lw>0?` · línea ${fmt(lw,1)} kN/m`:'')+(uw>0?` · uniforme ${fmt(uw,1)} kPa`:'')+(op>0?` · abertura de junta ${fmt(op,1)} mm`:'')+
+    '. Las cargas P* se calculan como γ<sub>f</sub> × carga de servicio y siguen vinculadas hasta que se escriba otro valor en ellas. <b>Campos en rojo pálido:</b> datos que ACI 360R-06 no define y deben digitarse.';
+  runT3(); }
+function t3ImpDerive(){ if(!T3_IMP) return; const I=T3_IMP, gr=v('t3-iGr'), go=v('t3-iGo'), gd=v('t3-gd')||1.6;
+  const put=(id,val,ok)=>{ const e=$(id); if(e.dataset.imp!=='1') return; if(ok){ e.value=+val.toFixed(1); e.classList.remove('pend'); } else t3Pend(e,true); };
+  const okR=!(I.rP>0)||gr>0, Pr=I.rP>0&&gr>0?gr*I.rP:0;
+  ['t3-P','t3-P1','t3-P2','t3-Q1','t3-Q2','t3-Q3','t3-Q4','t3-Pp'].forEach(id=>put(id,Pr,okR));
+  put('t3-Pj',Math.max(Pr,I.fP>0?gd*I.fP/2:0),okR);
+  const okO=!(I.lw>0||I.uw>0)||go>0; put('t3-wl',(go||0)*I.lw,okO); put('t3-q',(go||0)*I.uw,okO); }
+// true si no quedan datos pendientes; si quedan, lo informa y detiene el cálculo
+function t3PendChk(){ const jt=$('t3-jt').value;
+  if(jt==='free'||jt==='agg') [['t3-dd',16],['t3-ds',300]].forEach(([id,d])=>{ const e=$(id); if(e.classList.contains('pend')&&e.value===''){ e.value=d; } });
+  document.querySelectorAll('#p-t3 .pend').forEach(e=>{ if(e.value!=='') t3Pend(e,false); });
+  const P=[...document.querySelectorAll('#p-t3 .pend')]; if(!P.length) return true;
+  const lab=e=>{ const l=document.querySelector(`label[for="${e.id}"]`); if(!l) return e.id; const c=l.cloneNode(true); c.querySelectorAll('small').forEach(s=>s.remove()); return c.textContent.trim(); };
+  $('t3-big').innerHTML='—'; $('t3-bign').textContent=`faltan ${P.length} dato${P.length>1?'s':''} por definir`;
+  $('t3-kv').innerHTML=P.map(e=>`<dt class="bad">${lab(e)}</dt><dd>${e.dataset.imp==='1'?'se llena al definir γ<sub>f</sub>':'pendiente'}</dd>`).join('');
+  $('t3-msg').innerHTML='<span class="warn">Digite los campos en rojo pálido para completar el diseño importado de ACI 360R-06.</span>'; $('t3-pt').innerHTML='';
+  if($('t3-cmp')) $('t3-cmp').innerHTML='<p class="note">La comparación aparece cuando no quedan datos pendientes.</p>';
+  return false; }
+// espesor mínimo que cumple todas las verificaciones (pasos de 10 mm desde el mínimo de TR 34)
+function t3HReq(o){ for(let h=150;h<=600;h+=10){ const r=t3Eval({...o,h}); if(r.umax<=1) return {h,r}; } return {h:NaN}; }
+const t3GovN=r=>{ const c=r.chk.filter(c=>c.inU).reduce((b,c)=>c.u>b.u?c:b,{u:-1,g:'',n:''}); return `${c.g} · ${c.n}`; };
+function t3Cmp(o){ const el=$('t3-cmp'); if(!el) return;
+  let aci=null; try{ const {C}=ipCases(); if(C.length){ const R=C.map(c=>({n:c.n,hr:ipHreq(c)})), g=R.reduce((b,x)=>(!Number.isFinite(x.hr)||x.hr>b.hr)?x:b,R[0]); aci={h:Math.ceil(g.hr/10)*10,n:g.n}; } }catch(e){}
+  const pl=t3HReq({...o,ft:'none',As:0}), fb=o.ft!=='none'?t3HReq(o):null, fbn=o.ft==='none'?'':($('t3-fib').selectedOptions[0]?.textContent||'fibra')+` · ${fmt(o.dose,1)} kg/m³`;
+  const vol=h=>Number.isFinite(h)?fmt(h/10,1):'—', hh=h=>Number.isFinite(h)?`<b>${h} mm</b>`:'&gt; 600 mm';
+  let t=`<tr><th style="text-align:left">Metodología</th><th>Espesor requerido</th><th style="text-align:left">Gobierna</th><th>Concreto m³/100 m²</th><th>Fibra kg/100 m²</th></tr>`;
+  if(aci) t+=`<tr><td style="text-align:left;white-space:normal">ACI 360R-06 · ${T3_IMP?T3_IMP.typ.toLowerCase():'datos del módulo Industriales'}</td><td>${hh(aci.h)}</td><td style="text-align:left;white-space:normal">${aci.n}</td><td>${vol(aci.h)}</td><td>${$('ip-type').value==='frc'?'—':'0'}</td></tr>`;
+  t+=`<tr><td style="text-align:left;white-space:normal">TR 34 sin fibras (verificación elástica, f<sub>ctd,fl</sub>)</td><td>${hh(pl.h)}</td><td style="text-align:left;white-space:normal">${pl.r?t3GovN(pl.r):'—'}</td><td>${vol(pl.h)}</td><td>0</td></tr>`;
+  if(fb) t+=`<tr><td style="text-align:left;white-space:normal">TR 34 con ${o.ft==='s'?'fibra de acero':'macrofibra'} · ${fbn}</td><td>${hh(fb.h)}</td><td style="text-align:left;white-space:normal">${fb.r?t3GovN(fb.r):'—'}</td><td>${vol(fb.h)}</td><td>${Number.isFinite(fb.h)?fmt(o.dose*fb.h/10,0):'—'}</td></tr>`;
+  const bars=[...(aci?[{n:'ACI 360R-06',v:aci.h}]:[]),{n:'TR 34 sin fibras',v:pl.h},...(fb?[{n:`TR 34 con ${o.ft==='s'?'fibra de acero':'macrofibra'}`,v:fb.h,b:true}]:[])].filter(r=>Number.isFinite(r.v));
+  let imp='';
+  if(fb&&Number.isFinite(fb.h)&&Number.isFinite(pl.h)){ const d=pl.h-fb.h; imp+=`Con ${o.ft==='s'?'fibra de acero':'macrofibra'} el espesor TR 34 ${d>0?`baja ${d} mm (${fmt(d/pl.h*100,0)} %)`:d<0?`sube ${-d} mm`:'no cambia'} frente a la losa sin fibras: ${d>0?`ahorra ${fmt(d/10,1)} m³ de concreto`:'no ahorra concreto'} y agrega ${fmt(o.dose*fb.h/10,0)} kg de fibra por cada 100 m²`;
+    if(aci&&Number.isFinite(aci.h)) { const da=aci.h-fb.h; imp+=`; frente a ACI 360R-06 la diferencia es de ${da>0?da+' mm menos':da<0?(-da)+' mm más':'0 mm'}`; } imp+='.'; }
+  else if(!fb) imp='Seleccione una macrofibra y su dosificación en el Paso 2 para ver el impacto de las fibras.';
+  el.innerHTML=(T3_IMP?'':'<p class="note"><b>Nota:</b> los datos de ACI 360R-06 se leen tal como están en el módulo Industriales; use «Importar diseño ACI 360R-06» para que ambos diseños partan de la misma geometría y cargas.</p>')+
+    `<div class="tablewrap"><table>${t}</table></div>`+(bars.length?`<div class="t3fig">${t3Bars(bars,{n:'h de verificación',v:o.h},'Espesor requerido por metodología (mm)',0)}</div>`:'')+
+    (imp?`<p class="note" style="margin-top:6px"><b>Impacto de las fibras:</b> ${imp}</p>`:'')+
+    `<p class="note">Espesor mínimo que cumple todas las verificaciones, en pasos de 10 mm. ACI 360R-06 trabaja con cargas de servicio y factor de seguridad sobre el módulo de rotura (incluida la fatiga por repeticiones); TR 34 trabaja en estado límite último con cargas mayoradas (γ<sub>f</sub>) y, con fibras, con la capacidad posfisuración por líneas de rotura. TR 34 no admite losas de menos de 150 mm (4.1).</p>`; }
+function t3Load(){ t3ImpReset(); const e=t3Ex(); Object.keys(e).forEach(k=>{ const el=$('t3-'+k); if(el) el.value=e[k]; }); runT3(); }
 // tabla de pasos al estilo del Apéndice A: descripción | símbolo | = expresión
 function t3St(title,rows){ return `<h3 class="t3h">${title}</h3><table class="t3s">`+rows.map(r=>{ if(typeof r==='string') return `<tr><td colspan="3" class="t3k">${r}</td></tr>`;
   const [d,s,e,ok]=r, ex=(Array.isArray(e)?e:[e]); return `<tr><td>${d}</td><td class="t3y">${s}</td><td>${ex.map((x,i)=>'= '+x+(i===ex.length-1&&ok!=null?` <span class="pill ${ok?'ok':'bad'}">${ok?'cumple':'no cumple'}</span>`:'')).join('<br>')}</td></tr>`; }).join('')+'</table>'; }
-function runT3(){ if(!$('t3-big')) return; t3FtUI(); t3Rack(); t3MheUI(); const o=t3Opts(), r=t3Eval(o), ok=r.umax<=1, pill=x=>`<span class="pill ${x<=1?'ok':'bad'}">${fmt(x*100,0)} %</span>`, f=(x,d=1)=>fmt(x,d), g=(x,c)=>x>=c;
+function runT3(){ if(!$('t3-big')) return; t3ImpDerive(); if(!t3PendChk()) return; $('t3-bign').textContent='utilización máxima (demanda / capacidad)'; t3FtUI(); t3Rack(); t3MheUI(); const o=t3Opts(), r=t3Eval(o), ok=r.umax<=1, pill=x=>`<span class="pill ${x<=1?'ok':'bad'}">${fmt(x*100,0)} %</span>`, f=(x,d=1)=>fmt(x,d), g=(x,c)=>x>=c;
   $('t3-big').innerHTML=`<span class="${ok?'ok':'bad'}">${fmt(r.umax*100,0)}</span><small>%</small>`;
   $('t3-kv').innerHTML=`<dt>Espesor</dt><dd>${f(o.h,0)} mm${o.h<150?' <span class="bad">(&lt; 150 mm mínimo)</span>':''}</dd><dt>M<sub>up</sub> (positivo, ${o.ft==='none'?(o.As>0?'barras':'sin fibras'):'fibras'})</dt><dd>${f(r.Mp,2)} kN·m/m</dd><dt>M<sub>un</sub> (negativo, concreto simple)</dt><dd>${f(r.Mun,2)} kN·m/m</dd><dt>Radio de rigidez relativa l</dt><dd>${f(r.l,1)} mm</dd><dt>Resultado</dt><dd><span class="pill ${ok?'ok':'bad'}">${ok?'Cumple':'No cumple'}</span></dd>`;
   const msg=[]; if(r.plain) msg.push('diseño sin fibras ni barras: el concreto simple no tiene ductilidad para el análisis por líneas de rotura (TR 34, 7.3), por lo que las cargas puntuales se verifican elásticamente (Westergaard–Ioannides) con el esfuerzo de tracción limitado a f<sub>ctd,fl</sub>'); else if(r.ratio<0.5) msg.push(`M<sub>up</sub>/M<sub>un</sub> = ${f(r.ratio,2)} es menor que 0,5 (TR 34, 7.4): aumente la dosificación o agregue refuerzo`); if(o.ft==='m') msg.push('fibras macrosintéticas: el punzonamiento se calcula con el concreto simple (4.6.3) y la fluencia a largo plazo debe considerarse (TR 34, 6.2.2)');
 
-  t3FibPanel(o,r); $('t3-msg').innerHTML=msg.length?'<span class="warn">Revise: '+msg.join('; ')+'.</span>':'';
+  t3FibPanel(o,r); t3Cmp(o); $('t3-msg').innerHTML=msg.length?'<span class="warn">Revise: '+msg.join('; ')+'.</span>':'';
   $('t3-pt').innerHTML='<tr><th style="text-align:left">Paso</th><th style="text-align:left">Verificación</th><th>Demanda</th><th>Capacidad</th><th>Utilización</th></tr>'+r.chk.map(c=>`<tr${c.inU?'':' class="note"'}><td style="text-align:left">${c.g}</td><td style="text-align:left;white-space:normal">${c.n}${c.inU?'':' (informativa)'}</td><td>${f(c.Pd)}</td><td>${f(c.Pu)}</td><td>${pill(c.u)}</td></tr>`).join('')+'<tr><td colspan="5" class="note" style="text-align:left;white-space:normal">Unidades: kN en cargas puntuales y juntas, kN/m en línea, kN/m² en carga uniforme. Las cargas de borde libre cuentan en la utilización solo cuando la junta se define como borde libre; con transferencia gobierna el Paso A1.3.</td></tr>';
   const S=r.S, D=r.Dd, Q=r.Q, J=r.J, al=r.al, alS=f(al,3);
   // A1.1
@@ -8850,6 +8950,7 @@ runClNow(); runDr(); runBq();
 ipFill(); $('pp-mat').innerHTML=BPA_MEF.map((r,i)=>`<option value="${i}">${r[0]} · MEF ${fmt(r[1],2)}</option>`).join('');
 $('ip-fq').addEventListener('input',()=>{ $('ip-ftire').value='c'; }); $('pp-Wc').addEventListener('input',()=>{ $('pp-cw').value='c'; });
 document.querySelectorAll('#p-ip .grid > .panel:first-child input, #p-ip .grid > .panel:first-child select').forEach(i=>i.addEventListener('input',runIp));
+$('ip-chk').addEventListener('change',e=>{ const n=e.target.dataset&&e.target.dataset.n; if(!n) return; if(e.target.checked) IP_HIDE.delete(n); else IP_HIDE.add(n); runIp(); });
 $('ip-fcap').addEventListener('change',()=>{ ipPreset(); runIp(); });
 document.querySelectorAll('#p-pp .grid > .panel:first-child input, #p-pp .grid > .panel:first-child select').forEach(i=>i.addEventListener('input',runPp));
 $('t-pp').addEventListener('click',runPp);
@@ -8957,7 +9058,8 @@ document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&!e.altKey&&e
 $('ks-q').addEventListener('input',ksFind); $('ks-q').addEventListener('keydown',e=>{ if(e.key==='ArrowDown'){ e.preventDefault(); ksSel=Math.min(ksRes.length-1,ksSel+1); ksPaint(); } else if(e.key==='ArrowUp'){ e.preventDefault(); ksSel=Math.max(0,ksSel-1); ksPaint(); } else if(e.key==='Enter'){ e.preventDefault(); ksGo(); } });
 $('ks').addEventListener('click',e=>{ if(e.target.id==='ks') ksClose(); }); $('ks-btn').addEventListener('click',ksOpen);
 window.addEventListener('scroll',kbSched,{passive:true}); window.addEventListener('resize',kbSched); tabs.forEach(t=>t.addEventListener('click',()=>{ $('hp').hidden=true; setTimeout(kbUpdate,60); })); $('kb-go').addEventListener('click',()=>{ if(kbSec) kbSec.scrollIntoView({block:'center',behavior:'smooth'}); });
-document.querySelectorAll('#p-t3 .grid > .panel:first-child input, #p-t3 .grid > .panel:first-child select').forEach(el=>el.addEventListener('input',runT3)); t3FibOpts(); t3MheOpts(); $('t3-mhe').addEventListener('input',()=>{ t3MheApply(); runT3(); }); $('t3-tt').addEventListener('input',()=>{ $('t3-tp').value=T3_TP[$('t3-tt').value]; runT3(); }); $('t3-mic').addEventListener('input',()=>{ t3Mic(); runT3(); }); $('t-t3').addEventListener('click',runT3); $('t3-ex').addEventListener('click',t3Load); $('t3-fib').addEventListener('input',()=>{ t3Fib(); runT3(); }); runT3();
+document.querySelectorAll('#p-t3 .grid > .panel:first-child input, #p-t3 .grid > .panel:first-child select').forEach(el=>el.addEventListener('input',runT3));
+$('p-t3').addEventListener('input',e=>{ const d=e.target.dataset; if(d&&d.imp==='1') d.imp='0'; },true); $('t3-imp').addEventListener('click',t3Import); t3FibOpts(); t3MheOpts(); $('t3-mhe').addEventListener('input',()=>{ t3MheApply(); runT3(); }); $('t3-tt').addEventListener('input',()=>{ $('t3-tp').value=T3_TP[$('t3-tt').value]; runT3(); }); $('t3-mic').addEventListener('input',()=>{ t3Mic(); runT3(); }); $('t-t3').addEventListener('click',runT3); $('t3-ex').addEventListener('click',t3Load); $('t3-fib').addEventListener('input',()=>{ t3Fib(); runT3(); }); runT3();
 pjMods(); $('pj-date').value=today();
 PJ_DEFAULT=pjCollect(); PJ_DEFAULT.vals['pj-name']=''; PJ_DEFAULT.vals['pj-client']=''; PJ_DEFAULT.vals['pj-loc']=''; PJ_DEFAULT.vals['pj-author']=''; PJ_DEFAULT.vals['pj-rev']=''; PJ_DEFAULT.vals['pj-notes']='';
 { let um='si'; try{ um=localStorage.getItem('losas-units')||'si'; }catch(e){} if(um==='en') setUnits('en',false); }
